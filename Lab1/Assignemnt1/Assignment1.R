@@ -12,7 +12,7 @@ id=sample(1:n, floor(n*0.5))
 #splitting data into training data and test data
 train = my_data[id,]
 test = my_data[-id,]
-fit <- glm(Spam~.,family=binomial(link='logit'),data=train)
+fit = glm(Spam~.,family=binomial(link='logit'),data=train)
 summary(fit)
 
 results = predict(fit,test)
@@ -26,11 +26,13 @@ print(Tlogreg)
 heatmap(Tlogreg)
 
 #print(paste('Accuracy',1-misClasificError))
-print(paste('Missclassification kknn',misClasificError))
+print(paste('Missclassification',misClasificError))
 
 #kknn
 #https://www.r-bloggers.com/k-nearest-neighbor-step-by-step-tutorial/
-modelknn <- kknn(Spam~., train, test, k=1)
+modelknn <- kknn(Spam~., train, train, k=30)
+modelknn1 <- kknn(Spam~., train, test, k=1)
+
 fitkknn <- fitted(modelknn)
 
 result1 <- floor(fitkknn + 0.5)

@@ -1,0 +1,131 @@
+---
+title: "Report_Lab1"
+output: pdf_document
+---
+````{r libr, echo=FALSE}
+library(kknn)
+````
+
+## Assignment 1: Spam classification with nearest neighbors
+
+For this task we first import the data from an excel file spambase.xlsx into the RStudio using following function:
+````{r import}
+my_data = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/Assignemnt1/spambase.xlsx", 1)
+````
+Later as suggested in the lab description we divide the datafile into two chunks, one for training and one for testing:
+````{r divide, echo = TRUE}
+n=dim(my_data)[1]
+set.seed(12345)
+id=sample(1:n, floor(n*0.5))
+train = my_data[id,]
+test = my_data[-id,]
+````
+For the logistic regression we use (as suggested in the lab description) "glm()" function and get the following:
+
+````{r glm , warning=FALSE}
+fit = glm(Spam~.,family=binomial(link='logit'),data=train)
+````
+Now, after the model is trained, we can test it with the predict function and later see how it performed with the confusion matrix. In the Assignment 1.2 the goal was to see test the data with the classification principle, where p>0.5 ?? 1 : 0. After using this principle we can show the confusion matrix for the results as well as print the missclassification error and accuracy.
+
+````{r predict1.2a}
+results.train = predict(fit,train, type = "response")
+results = predict(fit,test, type = "response")
+results.train05 = ifelse(results.train > 0.5,1,0) #Assignment 1.2a
+results05 = ifelse(results > 0.5,1,0) #Assignment 1.2b
+````
+Assignment 1.2a confusion matrix:
+````{r table1.2a, echo=FALSE}
+#Assignment 1.2a
+table(factor(train$Spam, labels=c("Actual not spam", "Actual spam")),
+      factor(results.train05, labels=c("Pred not spam", "Pred spam")));
+````
+````{r print1, echo=FALSE}
+missclassification05.train = mean(results.train05 != train$Spam)
+print(paste('Missclassification error train',missclassification05.train))
+print(paste('Accuracy train ',1-missclassification05.train))
+````
+Assignment 1.2b confusion matrix:
+````{r table1.2b, echo=FALSE}
+#Assignment 1.2b
+table(factor(test$Spam, labels=c("Actual not spam", "Actual spam")),
+      factor(results05, labels=c("Pred not spam", "Pred spam")));
+````
+````{r print2, echo=FALSE}
+missclassification05 = mean(results05 != test$Spam)
+print(paste('Missclassification error test',missclassification05))
+print(paste('Accuracy test ',1-missclassification05))
+````
+The obtained accuracy is around 80% for both train and test sets as well as the missclassification is lower for the predictions on the training data than test data. This is a very good result, because it is not overfitting to the traing data, but it is still highet than the results for predicting on the test data.  The confusion matrix gives a bit better insight into the results. Here we can see something interesting, the precision for the spam is not that high (around 70% for both train and test),
+
+````{r analisys05, echo= FALSE}
+print(paste('Precission train: ',344/(142+344)))
+print(paste('Precission test: ',336/(146+336)))
+````
+and tells us, that the model will classify some emails as a spam even if they're not. This could be a "deal breaker" for the classifier as we want that value to be as high in procentage as possible.
+
+In the assignment 1.3 the task was to do the same thing as in assignment 1.2, but with the classification principle, where p>0.9 ?? 1 : 0. The result can be seen below. 
+````{r predict1.3}
+results.train09 = ifelse(results.train > 0.9,1,0) #Assignment 1.2a
+results09 = ifelse(results > 0.9,1,0) #Assignment 1.2b
+````
+Assignment 1.3a confusion matrix:
+````{r table1.3a, echo=FALSE}
+#Assignment 1.3a
+table(factor(train$Spam, labels=c("Actual not spam", "Actual spam")),
+      factor(results.train09, labels=c("Pred not spam", "Pred spam")));
+missclassification09.train = mean(results.train09 != train$Spam)
+print(paste('Missclassification error train',missclassification09.train))
+print(paste('Accuracy train ',1-missclassification09.train))
+````
+Assignment 1.3a confusion matrix:
+````{r table1.3b, echo=FALSE}
+#Assignment 1.3b
+table(factor(test$Spam, labels=c("Actual not spam", "Actual spam")),
+      factor(results09, labels=c("Pred not spam", "Pred spam")));
+missclassification09 = mean(results09 != test$Spam)
+print(paste('Missclassification error test',missclassification09))
+print(paste('Accuracy test ',1-missclassification09))
+````
+In this case, the accuracy went down but even more interesting results can be observed in the confusion matrix. There can observe quite different story to the 1.2. The recall (true positives/(false negatives + true positives)) is extreamly low for both train and test datasets. This implies, that the model is likely to classify an actual spam as a normal email, which would be equal to flooding the mailbox with trash mail.
+````{r analisys09, echo= FALSE}
+print(paste('Recall train: ',6/(6+419)))
+print(paste('Recall test: ',6/(6+427)))
+````
+
+The last two subassignments we need to use a library "kknn" as suggested in the lab documentation. K-nn is a nonparametric model and uses the training data for classifying new data. First we use the "kknn" function to build the model for both train and test data.
+````{r kknn30}
+modelknn.train30 <- kknn(Spam~., train, train, k=30)
+modelknn.test30 <- kknn(Spam~., train, test, k=30)
+result.train30 <- floor(fitted(modelknn.train30) + 0.5)
+result.test30 <- floor(fitted(modelknn.test30) + 0.5)
+misClasificError.kknn30.train = mean(result.train30 != train$Spam)
+misClasificError.kknn30.test = mean(result.test30 != test$Spam)
+````
+Here, the objective was to print the missclassification rate and compare it with the results found in step 2. As we can see below, the result of predicting the train data is very simmilar to the one found in the assignment 1.2 for both the train and test datasets. However if we look at the results from testing the test dataset, we find, that the results here vary quite a lot. The misclassification rate here is almost double as high, which means poor classification quality.
+````{r print4, echo=FALSE}
+print(paste("Misclassification K = 30, train, train", misClasificError.kknn30.train))
+print(paste("Misclassification K = 30, train, test", misClasificError.kknn30.test))
+````
+Next objective was to create a KNN model with the k=1. It is worth noting that this low of a k value can cause noise and overfitting of the model and this is exactly what happens when we test the model on the training dataset.
+````{r kknn1, echo= FALSE}
+modelknn.train1 <- kknn(Spam~., train, train, k=1)
+modelknn.test1 <- kknn(Spam~., train, test, k=1)
+result.train1 <- floor(fitted(modelknn.train1) + 0.5)
+result.test1 <- floor(fitted(modelknn.test1) + 0.5)
+misClasificError.kknn1.train = mean(result.train1 != train$Spam)
+misClasificError.kknn1.test = mean(result.test1 != test$Spam)
+````
+Here the results show misclassification rate of 0 for the training dataset, that show, that the model is overfitted for the dataset. This is later proven, by the very poor results of the testing on the test dataset, that yields even poorer misclassification rate, than with k=30 at around 35%.
+
+````{r print5, echo=FALSE}
+print(paste("Misclassification K = 1, train, train",misClasificError.kknn1.train))
+print(paste("Misclassification K = 1, train, train",misClasificError.kknn1.test))
+````
+## Assignment 2
+
+## Assignment 4
+
+You can also embed plots, for example:
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
