@@ -121,11 +121,119 @@ Here the results show misclassification rate of 0 for the training dataset, that
 print(paste("Misclassification K = 1, train, train",misClasificError.kknn1.train))
 print(paste("Misclassification K = 1, train, train",misClasificError.kknn1.test))
 ````
-## Assignment 2
+## Assignment 2: Inference about lifetime of machines
+In this assignment we will use a datafile provided in the lab called machines.xlsx. Because the import of the file is exactly the same as in the assignment 1 no code will be provided.
+````{r importMachines, echo=FALSE}
+my_data = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/Assignment2/machines.xlsx", 1)
 
-## Assignment 4
+````
+We start of with describing the distribution type of $x$ ($\mathrm{p}(x \mid \theta)=\theta e^{-\theta x}$) as exponential distribution. Next task is to write a function that computes the log-likelihood $\log(\mathrm{p}(x \mid \theta))$. We start with defining the function with two input varialbes, one for x and one for theta. Later we create a return vector theta.return for returning the results. Lastly we do a for loop, that loops through all of the theta values to show how the theta varies. 
+````{r loglikelihood}
+logLikelihood = function(x, theta){
 
-You can also embed plots, for example:
+  theta.return = 1:length(theta)
+  
+  for(a in 1 : length(theta)){
+    probVector = theta[a]*exp(-theta[a]*x)
+    theta.return[a] = log(prod(probVector))
+  }
+  
+  return(theta.return)
+}
+````
+For the task of showing how the tha function is dependent on the theta value, we picked different values to start with, but ended up with 0<=theta<=4 which gave most interesting results. In the graph below we can see how the log likelihood varies with respect to theta. When theta is around 0, the likelyhood is below -300 and reaches it's peek around theta value of 1. For theta > 1 the likelyhood starts to decrease.
+````{r plot1, echo=FALSE}
+library(ggplot2)
+theta = seq(0, 4, by=0.001)
+result1.vector = logLikelihood(my_data$Length, theta)
+result1 = data.frame(theta = theta, maxlik= result1.vector)
+result1$cat = "Entire dataset"
+ggplot(result1, aes(theta, maxlik, colour = cat))+
+  geom_point()
+#print(max(result1))
+````
+The maximum likelihood as read from the plot is between -50 and -40 for theta value around 1.
+
+In the assignment 1.3 the steps from the assignment 1.2 are supposed to be repeated however with just 6 first observations from the dataset and to be plotted on to the graph found in 1.2. In the graph seen below we can see how the theta likelihood varies in respect to theta for just first 6 data samples. The curve for the first 6 points starts of at around the maximum likelihood from the entire data set at around -50 and -40 and after it reaches theta 1 it seem to converge torwards 0. We can read from the graph that the maximum likelihood is reached for theta around 1 just like for the entire dataset, however it does not decrease as rappidly as the previous graph.
+````{r ggplot, echo=FALSE}
+result2.vector = logLikelihood(head(my_data,6), theta)
+
+result2 = data.frame(theta= theta, maxlik= result2.vector)
+
+result2$cat = "6 first points"
+
+df = rbind(result2, result1 )
+
+ggplot(df, aes(theta, maxlik, colour = cat))+
+  geom_point()
+````
+For the assignment 1.4 we have a Bayesian model with function $\mathrm{p}(x \mid \theta)=\theta e^{-\theta x}$ and a prior function $\mathrm{p}(\theta)=\lambda  e^{-\theta \lambda}$ where $\lambda = 10$ and we want to show the dependence of function $l(\theta)=\log(\mathrm{p}(x \mid \theta)\mathrm{p}(\theta))$ on $\theta$ and plot the function with the previous ones. In the graph below we can se how similar the bayesian model is to the model that uses the entire dataset. The baysian model decreases a bit faster than the first model as well as it has a slightly different maximum value. The maximum likelihood for the functions are following:
+````{r bayesianfunc, echo=FALSE}
+p.prior= function(lambda, theta){
+  returnProb = lambda*exp(-theta*lambda)
+  return(returnProb)
+}
+
+logLikelihoodlabda = function(theta,x, lambda){
+
+  theta.return = 1:length(theta)
+  
+  for(a in 1 : length(theta)){
+    probVector = theta[a]*exp(-theta[a]*x)
+    theta.return[a] = log(prod(probVector)*p.prior(lambda, theta[a]))
+  }
+  
+  return(theta.return)
+}
+result.bayes.vector = logLikelihoodlabda(theta,my_data$Length, 10)
+result.bayes = data.frame(theta = theta, maxlik= result.bayes.vector)
+result.bayes$cat = "Bayes model"
+
+df = rbind(result2, result1, result.bayes )
+````
+
+````{r maxliklihoodAll, echo= FALSE}
+cat("Max likelihood for all datapoints: ", as.numeric(max(result1.vector)), " with theta=", theta[as.numeric(which.max(result1.vector))])
+cat("Max likelihood for first 6 datapoints: ", as.numeric(max(result2.vector)), " with theta=", theta[as.numeric(which.max(result2.vector))])
+cat("Max likelihood for bayesian model: ", as.numeric(max(result.bayes.vector)), " with theta=", theta[as.numeric(which.max(result.bayes.vector))])
+#print(paste("First 6 datapoints: "max(as.vector(result2)))
+#print(paste("Bayesian model: "max(as.vector(result.bayes)))
+````
+Summarizing, theta that gives maximum log liklihood varies between 0.912 to 1.786 for all models
+````{r ggplot3, echo=FALSE}
+ggplot(df, aes(theta, maxlik, colour = cat))+
+  geom_point()
+````
+For the last subassignment 1.5 we need to create a histogram with the $\theta$ value from 1.2 using the standard numbers generator:
+````{r standardgenerator}
+randomPoints = rexp(50, rate=1.126)
+````
+````{r histogramRand, echo=FALSE}
+hist(randomPoints, freq=TRUE, breaks=50, col="red")
+````
+
+## Assignment 4: Linear regression and regularization
+In this assignment the first task is to import the dataset "tecator.xlsx", create a plot Moisture vs Protein and answer the question if the data can be described well by a linear model. If we look at the plot below, most of the data points are linearly increasing. There are some anomalies found along the moisture axis, that diviate from the rest, but overall the data can be described well by a linear model. This can be seen with the line in the middle of the plot, that actually represents the linear model for the moisture vs protein.
+````{r importtecator, echo= FALSE}
+my_data4 = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/tecator.xlsx", 1)
+plot(my_data4$Protein, my_data4$Moisture, xlab = "Protein", ylab = "Moisture", col = "blue")
+linProtMois <- lm(my_data4$Moisture~my_data4$Protein)
+poly.model <- lm(my_data4$Moisture ~ poly(my_data4$Protein,3))
+poly.predict <- predict(poly.model,my_data4)
+#print(length(fitted(pred)))
+abline(linProtMois)
+lines(my_data4$Protein, poly.predict , col='red',lwd=1)
+
+linProtMois = summary(linProtMois)
+
+mse <- function(linProtMois) 
+    mean(linProtMois$residuals^2)
+print(mse(linProtMois))
+#hist(my_data4$Moisture, freq=TRUE, breaks=50, col="red")
+````
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+

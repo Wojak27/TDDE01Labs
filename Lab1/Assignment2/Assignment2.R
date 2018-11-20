@@ -53,6 +53,7 @@ logLikelyhoodBayes = function(x, theta, landa){
   
   for(a in 1 : length(theta)){
     
+    #gives you the probability of getting a certain value of x
     probVector = theta[a]*exp(-theta[a]*x)
     probLanda = landa*exp(-landa*x)
     probTot = prod(probVector)*prod(probLanda)
