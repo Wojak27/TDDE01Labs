@@ -3,50 +3,51 @@ my_data4 = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skol
 plot(my_data4$Protein, my_data4$Moisture, col = "blue")
 
 linProtMois <- lm(my_data4$Moisture ~ my_data4$Protein)
-poly.model <- lm(my_data4$Moisture ~ poly(my_data4$Protein,5))
+#poly.model <- lm(my_data4$Moisture ~ poly(my_data4$Protein,5))
 
-summary(poly.model)
-summary(linProtMois)
+#summary(poly.model)
+#summary(linProtMois)
 #plot(fitted(poly.model),residuals(poly.model))
-new <- data.frame(Protein = my_data4$Protein)
-poly.predict <- predict(poly.model, newdata = new, interval="confidence")
+#new <- data.frame(Protein = my_data4$Protein)
+#poly.predict <- predict(poly.model, newdata = new, interval="confidence")
 #print(length(fitted(pred)))
-#abline(linProtMois)
+abline(linProtMois)
 
-poly.predict.over = data.frame(protein= my_data4$Protein, pred = poly.predict[,1])
-poly.predict.fit = data.frame(protein= my_data4$Protein, pred = poly.predict[,2])
-poly.predict.under = data.frame(protein= my_data4$Protein, pred = poly.predict[,3])
-poly.moisture = data.frame(protein= my_data4$Protein, pred = my_data4$Moisture)
+#poly.predict.over = data.frame(protein= my_data4$Protein, pred = poly.predict[,1])
+#poly.predict.fit = data.frame(protein= my_data4$Protein, pred = poly.predict[,2])
+#poly.predict.under = data.frame(protein= my_data4$Protein, pred = poly.predict[,3])
+#poly.moisture = data.frame(protein= my_data4$Protein, pred = my_data4$Moisture)
 
-poly.predict.over$cat = "over"
-poly.predict.fit$cat = "fit"
-poly.predict.under$cat = "under"
-poly.moisture$cat = "data points"
+#poly.predict.over$cat = "over"
+#poly.predict.fit$cat = "fit"
+#poly.predict.under$cat = "under"
+#poly.moisture$cat = "data points"
 
-df = rbind(poly.predict.over, poly.predict.fit, poly.predict.under,poly.moisture )
+#df = rbind(poly.predict.over, poly.predict.fit, poly.predict.under,poly.moisture )
 
-ggplot(df, aes(protein, pred, colour = cat))+
-  geom_point()
+#ggplot(df, aes(protein, pred, colour = cat))+ geom_point()
 
 #plot(my_data4$Protein, poly.predict[,1] , col='red',lwd=1)
 #lines(my_data4$Protein,poly.predict[,2],col='blue',lwd=1)
 #lines(my_data4$Protein,poly.predict[,3],col='black',lwd=1)
 
 
-linProtMois = summary(linProtMois)
-print(linProtMois)
-print(linProtMois$residuals)
+#linProtMois = summary(linProtMois)
+#print(linProtMois)
+#print(linProtMois$residuals)
 
 
 #assignment 4.3
 
 my_data4 = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/tecator.xlsx", 1)
 
+set.seed(12345)
+
 dimension = dim(my_data4)[1]
 set.seed(12345)
 id = sample(1:dimension, floor(dimension*0.5))
 train = my_data4[id,]
-test = my_data4[-107,]
+test = my_data4[-id,]
 
 #models:
 M1 = lm(Moisture ~ poly(Protein,1), data = train)
@@ -120,9 +121,46 @@ ggplot(results.binded) +
   labs(title="MSE vs Iteration", y="MSE", x="Iteration", color = "Legend") +
   scale_color_manual(values = c("blue", "orange"))
 
+#Assignment 4.4
+
+my_data4 = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/tecator.xlsx", 1)
+
+library(MASS)
+
+fat.vector = my_data4[,102]
+sliced.data = my_data4[,2:101]
+
+model.sliced = lm(fat.vector$Fat~. , data = sliced.data)
+
+reduced = stepAIC(model.sliced, direction = c("both"), trace = FALSE)
+
+print(paste("reduced: ", length(reduced$coefficients-1))) #-1 for the coefficient B_0
 
 
+#Assignment 4.5,4.6
+library(glmnet)
 
+my_data4 = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/tecator.xlsx", 1)
 
+set.seed(12345)
+sliced.data = my_data4[,2:101]
 
+ridge =glmnet(as.matrix(sliced.data),my_data4$Fat, alpha=0, family = "gaussian")
+lasso=glmnet(as.matrix(sliced.data),my_data4$Fat, alpha=1, family = "gaussian")
+
+plot(ridge, xvar="lambda", label=T)
+plot(lasso, xvar="lambda", label=T)
+
+#Assignment 4.7
+
+library(glmnet)
+
+lasso=glmnet(as.matrix(sliced.data),my_data4$Fat, alpha=1, family = "gaussian")
+my_data4 = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/tecator.xlsx", 1)
+sliced.data = my_data4[,2:101]
+
+model=cv.glmnet(as.matrix(sliced.data),my_data4$Fat, alpha=1,family="gaussian", lambda = c(lasso$lambda,0))
+print(model$lambda.min) #lambda that minimizes the error 
+plot(model)
+#coef(model, s="lambda.min")
 

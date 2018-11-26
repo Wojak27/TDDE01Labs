@@ -9,6 +9,7 @@ my_data = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola
 n=dim(my_data)[1]
 id=sample(1:n, n)
 
+hist(my_data$Length)
 #splitting data into training data and test data
 train = my_data[id,]
 sort(train$Length)
@@ -84,6 +85,12 @@ plot(theta, result2, col="red", lwd=2)
 
 samples = sample(pfunction(max(result1),100), 50)
 
+
+randomPoints = rexp(50, rate=1.126)
+hist(randomPoints, freq=TRUE, breaks=50, col="red")
+x <- seq(0, 3, length.out=1000)
+dat <- data.frame(x=x, px=dexp(x, rate=1.126))
+lines(x,dat$px , col="blue", lwd=2)
 
 #the theta parameter decays faster with the entire set. this could mean that the first 6 values we take out from the 
 #array have higher average than the entire array of data based on the peak of the curve.
