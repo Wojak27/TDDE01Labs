@@ -72,6 +72,8 @@ print(paste("Best length:", best.n))
 #selecting the tree n = 4
 selected.tree=prune.tree(fit.deviance,best=best.n)
 pred.selected.tree=predict(selected.tree, test, type="class")
+plot(selected.tree)
+text(selected.tree, pretty=0)
 
 misClasificError.selected.tree = mean(pred.selected.tree != test$good_bad)
 
@@ -95,11 +97,13 @@ library(MASS)
 library(e1071)
 naive.bayes.model=naiveBayes(as.factor(good_bad)~., data=train)
 naive.bayes.model
-naive.bayes.predict.train = predict(naive.bayes.model, newdata=train) 
-naive.bayes.predict.test = predict(naive.bayes.model, newdata=test) 
+naive.bayes.predict.train = predict(naive.bayes.model, newdata=train[,1:19]) 
+naive.bayes.predict.test = predict(naive.bayes.model, newdata=test[,1:19]) 
 #conf matrix
-table(naive.bayes.predict.train, train$good_bad)
-table(naive.bayes.predict.test, test$good_bad)
+
+table(factor(naive.bayes.predict.train, labels=c("Bad", "Good")), factor(train$good_bad, labels=c("Actual Bad", "Actual Good")))
+table(factor(naive.bayes.predict.test, labels=c("Bad", "Good")), factor(test$good_bad, labels=c("Actual Bad", "Actual Good")))
+
 
 misClasificError.naive.bayes.predict.train = mean(naive.bayes.predict.train != train$good_bad)
 misClasificError.naive.bayes.predict.test = mean(naive.bayes.predict.test != test$good_bad)
@@ -107,8 +111,41 @@ print(misClasificError.naive.bayes.predict.train)
 print(misClasificError.naive.bayes.predict.test)
 
 #Assignment 2.5
-#type = "respons" vs "class":
+#type = "raw" vs "class":
 #https://stackoverflow.com/questions/23085096/type-parameter-of-the-predict-function
-naive.bayes.predict = predict(naive.bayes.model, newdata=test) 
+naive.bayes.predict = predict(naive.bayes.model, newdata=test[,1:19], type = "raw") 
+naive.bayes.predict
+pred.selected.tree.test=predict(selected.tree, test, type="vector")
+pred.selected.tree.test
+pred.selected.tree.roc = ifelse(pred.selected.tree.test[,2] > 0.5,1,0)
+pred.selected.tree.roc
+
+
 pi = seq(0.05, 0.95, by=0.05)
-#naive.bayes.predict = ifelse(naive.bayes.predict > 0.5,1,0)
+library(pROC)
+naive.bayes.roc.vector.tpr = 1:length(pi)
+naive.bayes.roc.vector.fpr = 1:length(pi)
+
+dec.tree.roc.vector.tpr = 1:length(pi)
+dec.tree.roc.vector.fpr = 1:length(pi)
+
+
+for(i in 1:length(pi)){
+  naive.bayes.roc = ifelse(naive.bayes.predict[,2] > pi[i],1,0)
+  dec.matrix.bayes = as.matrix(table(as.factor(naive.bayes.roc), test$good_bad))
+  #dec.matrix.bayes[2,2] = tp# dec.matrix.bayes[2,1] = fn
+  naive.bayes.roc.vector.tpr[i] = dec.matrix.bayes[2,2]/(dec.matrix.bayes[1,2]+dec.matrix.bayes[2,2])
+  naive.bayes.roc.vector.fpr[i] = dec.matrix.bayes[2,1]/(dec.matrix.bayes[2,1]+dec.matrix.bayes[1,1])
+  
+  pred.selected.tree.roc = ifelse(pred.selected.tree.test[,2] > pi[i],1,0)
+  if(length(unique(pred.selected.tree.roc)) > 1){
+  }
+  dec.matrix.tree = as.matrix(table(as.factor(pred.selected.tree.roc), test$good_bad))
+  #dec.tree.roc.vector.tpr[i] = dec.matrix.tree[2,2]/(dec.matrix.tree[1,2]+dec.matrix.tree[2,2])
+  #dec.tree.roc.vector.fpr[i] = dec.matrix.tree[2,1]/(dec.matrix.tree[2,1]+dec.matrix.tree[1,1])
+  
+}
+plot(naive.bayes.roc.vector.fpr, naive.bayes.roc.vector.tpr, xlim=c(0, 1), ylim=c(0, 1))
+points(dec.tree.roc.vector.fpr,dec.tree.roc.vector.tpr, col = "red")
+abline(a=0, b=1)
+#naive.bayes.predict = ifelse(naive.bayes.predict > pi,1,0)

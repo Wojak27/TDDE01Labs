@@ -70,3 +70,4 @@ print(misClasificError)
 #Really good fit, misclassification error: 0.035. You can barelly see differences. 
 #Same result as in 1.2
 
+
