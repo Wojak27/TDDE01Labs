@@ -101,8 +101,8 @@ naive.bayes.predict.train = predict(naive.bayes.model, newdata=train[,1:19])
 naive.bayes.predict.test = predict(naive.bayes.model, newdata=test[,1:19]) 
 #conf matrix
 
-table(factor(naive.bayes.predict.train, labels=c("Bad", "Good")), factor(train$good_bad, labels=c("Actual Bad", "Actual Good")))
-table(factor(naive.bayes.predict.test, labels=c("Bad", "Good")), factor(test$good_bad, labels=c("Actual Bad", "Actual Good")))
+table(factor(train$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.train, labels=c("Bad", "Good")))
+table(factor(test$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.test, labels=c("Bad", "Good")) )
 
 
 misClasificError.naive.bayes.predict.train = mean(naive.bayes.predict.train != train$good_bad)
@@ -133,19 +133,61 @@ dec.tree.roc.vector.fpr = 1:length(pi)
 for(i in 1:length(pi)){
   naive.bayes.roc = ifelse(naive.bayes.predict[,2] > pi[i],1,0)
   dec.matrix.bayes = as.matrix(table(as.factor(naive.bayes.roc), test$good_bad))
+  dec.matrix.bayes
   #dec.matrix.bayes[2,2] = tp# dec.matrix.bayes[2,1] = fn
   naive.bayes.roc.vector.tpr[i] = dec.matrix.bayes[2,2]/(dec.matrix.bayes[1,2]+dec.matrix.bayes[2,2])
   naive.bayes.roc.vector.fpr[i] = dec.matrix.bayes[2,1]/(dec.matrix.bayes[2,1]+dec.matrix.bayes[1,1])
   
   pred.selected.tree.roc = ifelse(pred.selected.tree.test[,2] > pi[i],1,0)
+  
+  #if we get a unique vector
   if(length(unique(pred.selected.tree.roc)) > 1){
+    dec.matrix.tree = as.matrix(table(as.factor(pred.selected.tree.roc), test$good_bad))
+    dec.tree.roc.vector.tpr[i] = dec.matrix.tree[2,2]/(dec.matrix.tree[1,2]+dec.matrix.tree[2,2])
+    dec.tree.roc.vector.fpr[i] = dec.matrix.tree[2,1]/(dec.matrix.tree[2,1]+dec.matrix.tree[1,1])
+      
   }
-  dec.matrix.tree = as.matrix(table(as.factor(pred.selected.tree.roc), test$good_bad))
-  #dec.tree.roc.vector.tpr[i] = dec.matrix.tree[2,2]/(dec.matrix.tree[1,2]+dec.matrix.tree[2,2])
-  #dec.tree.roc.vector.fpr[i] = dec.matrix.tree[2,1]/(dec.matrix.tree[2,1]+dec.matrix.tree[1,1])
+  
   
 }
-plot(naive.bayes.roc.vector.fpr, naive.bayes.roc.vector.tpr, xlim=c(0, 1), ylim=c(0, 1))
-points(dec.tree.roc.vector.fpr,dec.tree.roc.vector.tpr, col = "red")
+plot(c(1,naive.bayes.roc.vector.fpr,0), c(1,naive.bayes.roc.vector.tpr,0), xlim=c(0, 1), ylim=c(0, 1), col = "blue", type="b", xlab = "FPR", ylab = "TPR" )
+#excluding points that did not write
+points(c(dec.tree.roc.vector.fpr[dec.tree.roc.vector.fpr<=1],0),c(dec.tree.roc.vector.tpr[dec.tree.roc.vector.tpr<=1],0), col = "red", type="b")
 abline(a=0, b=1)
+legend(2, 95, legend=c("DT", "NB"),
+       col=c("red", "blue"), lty=1:2, cex=0.8)
 #naive.bayes.predict = ifelse(naive.bayes.predict > pi,1,0)
+
+
+#Assignment 2.6
+
+data = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab\ 2/creditscoring.xls", 1)
+n=dim(data)[1]
+set.seed(12345)
+id=sample(1:n, floor(n*0.5))
+train=data[id,]
+id1=setdiff(1:n, id)
+set.seed(12345)
+id2=sample(id1, floor(n*0.25))
+valid=data[id2,]
+id3=setdiff(id1,id2)
+test=data[id3,]
+
+library(MASS)
+library(e1071)
+#loss matrix seems not to do anything
+naive.bayes.model=naiveBayes(as.factor(good_bad)~., data=train, params = list(loss= matrix(c(0,10,1,0), ncol = 2)))
+naive.bayes.model
+naive.bayes.predict.train = predict(naive.bayes.model, newdata=train[,1:19], params = list(loss= matrix(c(0,10,1,0), ncol = 2)) ) 
+naive.bayes.predict.test = predict(naive.bayes.model, newdata=test[,1:19], params = list(loss= matrix(c(0,10,1,0), ncol = 2))) 
+#conf matrix
+
+table(factor(train$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.train, labels=c("Bad", "Good")))
+table(factor(test$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.test, labels=c("Bad", "Good")) )
+
+
+misClasificError.naive.bayes.predict.train = mean(naive.bayes.predict.train != train$good_bad)
+misClasificError.naive.bayes.predict.test = mean(naive.bayes.predict.test != test$good_bad)
+print(misClasificError.naive.bayes.predict.train)
+print(misClasificError.naive.bayes.predict.test)
+
