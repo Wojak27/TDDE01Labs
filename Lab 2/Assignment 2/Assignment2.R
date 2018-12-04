@@ -154,7 +154,7 @@ plot(c(1,naive.bayes.roc.vector.fpr,0), c(1,naive.bayes.roc.vector.tpr,0), xlim=
 #excluding points that did not write
 points(c(dec.tree.roc.vector.fpr[dec.tree.roc.vector.fpr<=1],0),c(dec.tree.roc.vector.tpr[dec.tree.roc.vector.tpr<=1],0), col = "red", type="b")
 abline(a=0, b=1)
-legend(2, 95, legend=c("DT", "NB"),
+legend(0.6, 0.2, legend=c("DT", "NB"),
        col=c("red", "blue"), lty=1:2, cex=0.8)
 #naive.bayes.predict = ifelse(naive.bayes.predict > pi,1,0)
 
@@ -190,4 +190,5 @@ misClasificError.naive.bayes.predict.train = mean(naive.bayes.predict.train != t
 misClasificError.naive.bayes.predict.test = mean(naive.bayes.predict.test != test$good_bad)
 print(misClasificError.naive.bayes.predict.train)
 print(misClasificError.naive.bayes.predict.test)
+
 
