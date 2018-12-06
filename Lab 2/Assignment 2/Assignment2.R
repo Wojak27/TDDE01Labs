@@ -178,8 +178,12 @@ library(e1071)
 #loss matrix seems not to do anything
 naive.bayes.model=naiveBayes(as.factor(good_bad)~., data=train, params = list(loss= matrix(c(0,10,1,0), ncol = 2)))
 naive.bayes.model
-naive.bayes.predict.train = predict(naive.bayes.model, newdata=train[,1:19], params = list(loss= matrix(c(0,10,1,0), ncol = 2)) ) 
-naive.bayes.predict.test = predict(naive.bayes.model, newdata=test[,1:19], params = list(loss= matrix(c(0,10,1,0), ncol = 2))) 
+naive.bayes.predict.train = predict(naive.bayes.model, newdata=train[,1:19], type = "raw" ) 
+naive.bayes.predict.test = predict(naive.bayes.model, newdata=test[,1:19], type = "raw" ) 
+
+naive.bayes.predict.train = ifelse(1*naive.bayes.predict.train[,1]>10*naive.bayes.predict.train[,2], "bad","good")
+naive.bayes.predict.test = ifelse(1*naive.bayes.predict.test[,1]>10*naive.bayes.predict.test[,2], "bad","good")
+
 #conf matrix
 
 table(factor(train$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.train, labels=c("Bad", "Good")))
