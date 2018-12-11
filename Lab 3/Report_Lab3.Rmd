@@ -1,0 +1,118 @@
+---
+title: "Report_Lab3"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Assignment 3
+In this assignment the task was to predict the sinus curve using a neural network with one hidden layer of 10 units using different thresholds for stopping the gradient descent.
+
+````{r assignment3prep}
+library(neuralnet)
+set.seed(1234567890)
+Var <- runif(50, 0, 10)
+trva <- data.frame(Var, Sin=sin(Var))
+````
+
+We randomised the points using the given code and $runif$ function and then applied the sinus function on all of them, that created the original dataset shown in a plot below.
+
+````{r assignment3originaldata}
+plot(trva$Var, trva$Sin, ylab = "Sin", xlab = "x", main = "Original dataset")
+tr <- trva[1:25,] # Training
+va <- trva[26:50,] # Validation
+# Random initialization of the weights in the interval [-1, 1]
+#winit <- # Your code here
+round(runif(10,-1,1), 2)
+
+threshold.vector = seq(0,10,by=1)
+````
+
+After the data has been obtained, we wanted to select the most appropriate threshold. Here we want to look at the lowest MSE value for the validation dataset, that we tested the model on. The MSE value for the training dataset is also provided to check if the model overfitts. As we can see the lowest MSE is given by the threshold of 0.001. It gives the lowest MSE value for both the training and validation datasets. The starting weights in the network are random values between -1 and 1.
+
+````{r loopass3, echo=TRUE}
+for(i in 1:10) {
+  thr = i/1000
+  threshold.vector[i] = thr
+  nn <- neuralnet(tr$Sin~ tr$Var, threshold = thr, data = tr , hidden = 10, startweights = round(runif(31,-1,1), 2) )
+    # Your code here
+  prediction.train = compute(nn, tr$Var)
+  prediction = compute(nn, va$Var)
+  MSE.nn.tr = sum((tr$Sin-prediction.train$net.result)^2)/length(tr$Var)
+  MSE.nn.va <- sum((va$Sin - prediction$net.result)^2)/length(va$Var)
+  print(paste("Threshold: ",thr, "MSE.va: ", MSE.nn.va))
+  print(paste("Threshold: ",thr, "MSE.tr: ", MSE.nn.tr))
+}
+best.threshold = min(threshold.vector)
+````
+After we have selected the threshold we want to plot the model against the original data, that is shown below. As we can see in the plot, the predicted values fit almost exactly in the plot with the original values. 
+
+````{r results}
+
+nn.best <- neuralnet(tr$Sin~ tr$Var, threshold = best.threshold, data = tr , hidden = 10, startweights = round(runif(31,-1,1), 2) )
+
+predict.nn.best = compute(nn.best, va$Var)
+
+print(paste("Selected threshold: ", best.threshold, " with MSE: ", sum((va$Sin - predict.nn.best$net.result)^2)/length(va$Var)))
+
+
+#plot(va$Var, predict.nn.best$net.result)
+# Plot of the predictions (black dots) and the data (red dots)
+plot(prediction(nn.best)$rep1, ylab = "Sin", xlab = "x", main = "Predicted points withe original dataset", col="blue")
+points(trva, col = "red")
+````
+
+Shown below is the plot of the final model with the best threshold. 
+
+````{r nnplot}
+
+plot(nn.best, rep = "best")
+````
+
+
+## Code
+
+## Assignment 1
+
+## Assignment 3
+````{r assignment3code, echo= TRUE, eval=FALSE}
+library(neuralnet)
+set.seed(1234567890)
+Var <- runif(50, 0, 10)
+trva <- data.frame(Var, Sin=sin(Var))
+plot(trva$Var, trva$Sin)
+tr <- trva[1:25,] # Training
+va <- trva[26:50,] # Validation
+# Random initialization of the weights in the interval [-1, 1]
+#winit <- # Your code here
+round(runif(10,-1,1), 2)
+
+threshold.vector = seq(0,10,by=1)
+  
+for(i in 1:10) {
+  thr = i/1000
+  threshold.vector[i] = thr
+  nn <- neuralnet(tr$Sin~ tr$Var, threshold = thr, data = tr , hidden = 10, startweights = round(runif(31,-1,1), 2) )
+    # Your code here
+  prediction = compute(nn, va$Var)
+  MSE.nn <- sum((va$Sin - prediction$net.result)^2)/length(va$Var)
+  print(paste("Threshold: ",thr, "MSE: ", MSE.nn))
+}
+best.threshold = min(threshold.vector)
+
+nn.best <- neuralnet(tr$Sin~ tr$Var, threshold = best.threshold, data = tr , hidden = 10, startweights = round(runif(31,-1,1), 2) )
+
+predict.nn.best = compute(nn.best, va$Var)
+
+print(paste("Selected threshold: ", best.threshold, " with MSE: ", sum((va$Sin - predict.nn.best$net.result)^2)/length(va$Var)))
+
+
+plot(va$Var, predict.nn.best$net.result)
+# Plot of the predictions (black dots) and the data (red dots)
+plot(prediction(nn.best)$rep1)
+points(trva, col = "red")
+
+plot(nn.best)
+````
