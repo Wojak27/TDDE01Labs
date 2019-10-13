@@ -507,9 +507,12 @@ result.bayes$cat = "Bayes model"
 
 df = rbind(result2, result1, result.bayes )
 
-cat("Max likelihood for all datapoints: ", as.numeric(max(result1.vector)), " with theta=", theta[as.numeric(which.max(result1.vector))])
-cat("Max likelihood for first 6 datapoints: ", as.numeric(max(result2.vector)), " with theta=", theta[as.numeric(which.max(result2.vector))])
-cat("Max likelihood for bayesian model: ", as.numeric(max(result.bayes.vector)), " with theta=", theta[as.numeric(which.max(result.bayes.vector))])
+cat("Max likelihood for all datapoints: ", as.numeric(max(result1.vector)), " with theta=",
+    theta[as.numeric(which.max(result1.vector))])
+cat("Max likelihood for first 6 datapoints: ", as.numeric(max(result2.vector)), " with theta=",
+    theta[as.numeric(which.max(result2.vector))])
+cat("Max likelihood for bayesian model: ", as.numeric(max(result.bayes.vector)), " with theta=",
+    theta[as.numeric(which.max(result.bayes.vector))])
 #print(paste("First 6 datapoints: "max(as.vector(result2)))
 #print(paste("Bayesian model: "max(as.vector(result.bayes)))
 
@@ -657,7 +660,8 @@ lasso=glmnet(as.matrix(sliced.data),my_data4$Fat, alpha=1, family = "gaussian")
 my_data4 = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab1/tecator.xlsx", 1)
 sliced.data = my_data4[,2:101]
 
-model=cv.glmnet(as.matrix(sliced.data),my_data4$Fat, alpha=1,family="gaussian", lambda = c(lasso$lambda,0))
+model=cv.glmnet(as.matrix(sliced.data),my_data4$Fat, alpha=1,
+family="gaussian", lambda = c(lasso$lambda,0))
 print(model$lambda.min) #lambda that minimizes the error 
 plot(model)
 #coef(model, s="lambda.min")

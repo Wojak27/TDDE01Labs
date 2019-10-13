@@ -563,7 +563,8 @@ for(i in 2:19) {
   trainScore[i]=deviance(prunedTree)
   testScore[i]=deviance(pred)
 }
-plot(2:19, trainScore[2:19], type="b", col="red", ylim=c(0,600), ylab = "Deviance", xlab = "Tree length")
+plot(2:19, trainScore[2:19], type="b", col="red", ylim=c(0,600), ylab = "Deviance", 
+     xlab = "Tree length")
 axis(side=1, at=c(2:19))
 legend(2, 95, legend=c("Train", "Valid"),
        col=c("red", "blue"), lty=1:2, cex=0.8)
@@ -580,8 +581,6 @@ plot(selected.tree)
 text(selected.tree, pretty=0)
 
 misClasificError.selected.tree = mean(pred.selected.tree != test$good_bad)
-
-#print
 print(misClasificError.selected.tree) # this is 0.256
 
 #Assignment 2.4
@@ -605,9 +604,10 @@ naive.bayes.predict.train = predict(naive.bayes.model, newdata=train[,1:19])
 naive.bayes.predict.test = predict(naive.bayes.model, newdata=test[,1:19]) 
 #conf matrix
 
-table(factor(train$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.train, labels=c("Bad", "Good")))
-table(factor(test$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.test, labels=c("Bad", "Good")) )
-
+table(factor(train$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.train
+, labels=c("Bad", "Good")))
+table(factor(test$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.test
+, labels=c("Bad", "Good")) )
 
 misClasificError.naive.bayes.predict.train = mean(naive.bayes.predict.train != train$good_bad)
 misClasificError.naive.bayes.predict.test = mean(naive.bayes.predict.test != test$good_bad)
@@ -624,7 +624,6 @@ pred.selected.tree.test
 pred.selected.tree.roc = ifelse(pred.selected.tree.test[,2] > 0.5,1,0)
 pred.selected.tree.roc
 
-
 pi = seq(0.05, 0.95, by=0.05)
 library(pROC)
 naive.bayes.roc.vector.tpr = 1:length(pi)
@@ -632,7 +631,6 @@ naive.bayes.roc.vector.fpr = 1:length(pi)
 
 dec.tree.roc.vector.tpr = 1:length(pi)
 dec.tree.roc.vector.fpr = 1:length(pi)
-
 
 for(i in 1:length(pi)){
   naive.bayes.roc = ifelse(naive.bayes.predict[,2] > pi[i],1,0)
@@ -651,20 +649,18 @@ for(i in 1:length(pi)){
     dec.tree.roc.vector.fpr[i] = dec.matrix.tree[2,1]/(dec.matrix.tree[2,1]+dec.matrix.tree[1,1])
       
   }
-  
-  
 }
-plot(c(1,naive.bayes.roc.vector.fpr,0), c(1,naive.bayes.roc.vector.tpr,0), xlim=c(0, 1), ylim=c(0, 1), col = "blue", type="b", xlab = "FPR", ylab = "TPR" )
+plot(c(1,naive.bayes.roc.vector.fpr,0), c(1,naive.bayes.roc.vector.tpr,0), xlim=c(0, 1), ylim=c(0, 1), col = "blue"
+     , type="b", xlab = "FPR", ylab = "TPR" )
 #excluding points that did not write
-points(c(dec.tree.roc.vector.fpr[dec.tree.roc.vector.fpr<=1],0),c(dec.tree.roc.vector.tpr[dec.tree.roc.vector.tpr<=1],0), col = "red", type="b")
+points(c(dec.tree.roc.vector.fpr[dec.tree.roc.vector.fpr<=1],0)
+       ,c(dec.tree.roc.vector.tpr[dec.tree.roc.vector.tpr<=1],0), col = "red", type="b")
 abline(a=0, b=1)
 legend(0.6, 0.2, legend=c("DT", "NB"),
        col=c("red", "blue"), lty=1:2, cex=0.8)
 #naive.bayes.predict = ifelse(naive.bayes.predict > pi,1,0)
 
-
 #Assignment 2.6
-
 data = readxl::read_excel(path = "/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab\ 2/creditscoring.xls", 1)
 n=dim(data)[1]
 set.seed(12345)
@@ -680,33 +676,34 @@ test=data[id3,]
 library(MASS)
 library(e1071)
 #loss matrix seems not to do anything
-naive.bayes.model=naiveBayes(as.factor(good_bad)~., data=train, params = list(loss= matrix(c(0,10,1,0), ncol = 2)))
+naive.bayes.model=naiveBayes(as.factor(good_bad)~., data=train, params = list(loss= matrix(c(0,10,1,0),
+ncol = 2)))
 naive.bayes.model
 naive.bayes.predict.train = predict(naive.bayes.model, newdata=train[,1:19], type = "raw" ) 
 naive.bayes.predict.test = predict(naive.bayes.model, newdata=test[,1:19], type = "raw" ) 
 
-naive.bayes.predict.train = ifelse(1*naive.bayes.predict.train[,1]>10*naive.bayes.predict.train[,2], "bad","good")
-naive.bayes.predict.test = ifelse(1*naive.bayes.predict.test[,1]>10*naive.bayes.predict.test[,2], "bad","good")
+naive.bayes.predict.train = ifelse(1*naive.bayes.predict.train[,1]>10*naive.bayes.predict.train[,2]
+, "bad","good")
+naive.bayes.predict.test = ifelse(1*naive.bayes.predict.test[,1]>10*naive.bayes.predict.test[,2]
+, "bad","good")
 
 #conf matrix
 
-table(factor(train$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.train, labels=c("Bad", "Good")))
-table(factor(test$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.test, labels=c("Bad", "Good")) )
-
+table(factor(train$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.train,
+                                                                            labels=c("Bad", "Good")))
+table(factor(test$good_bad, labels=c("Actual Bad", "Actual Good")), factor(naive.bayes.predict.test,
+labels=c("Bad", "Good")) )
 
 misClasificError.naive.bayes.predict.train = mean(naive.bayes.predict.train != train$good_bad)
 misClasificError.naive.bayes.predict.test = mean(naive.bayes.predict.test != test$good_bad)
 print(misClasificError.naive.bayes.predict.train)
 print(misClasificError.naive.bayes.predict.test)
-
-
-
-
 ````
 
 #### Assignment 4
 ````{r code4, eval = FALSE, echo = TRUE}
-data = read.csv(file="/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab\ 2/NIRSpectra.csv",sep=";", dec=",")
+data = read.csv(file="/Users/karolwojtulewicz/Google\ Drive/skola/TDDE01/Labs/Lab\ 2/NIRSpectra.csv"
+                ,sep=";", dec=",")
 set.seed(12345)
 
 data1 = data
@@ -750,10 +747,10 @@ library(fastICA)
 a <-fastICA(data1, 2) #ICA
 
 W.prime = a$K%*%a$W
-plot(1:length(W.prime[,1]), W.prime[,1],xlab = "W'1", ylab = "", main="Traceplot, W'1", ylim = range(-13,3))
-plot(1:length(W.prime[,2]), W.prime[,2],xlab = "W'2", ylab = "", main="Traceplot, W'2", ylim = range(-13,3))
+plot(1:length(W.prime[,1]), W.prime[,1],xlab = "W'1", ylab = "", main="Traceplot, W'1", 
+     ylim = range(-13,3))
+plot(1:length(W.prime[,2]), W.prime[,2],xlab = "W'2", ylab = "", main="Traceplot, W'2", 
+     ylim = range(-13,3))
 
 plot(a$S[,1], a$S[,2])
-
-
 ````
